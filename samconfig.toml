@@ -1,0 +1,12 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "empresa"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-v2yligxvwvvu"
+s3_prefix = "empresa"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+image_repositories = []

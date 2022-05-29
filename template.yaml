@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  empresa
+  Sample SAM Template for empresa
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  EmpresaTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: empresa
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  EmpresaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: serverless_rest_api/
+      Handler: app.app
+      Runtime: python3.9
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref EmpresaTable
+      Events:
+        Test:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+        ListEmpresa:
+          Type: Api
+          Properties:
+            Path: /empresa
+            Method: get
+        PostEmpresa:
+          Type: Api
+          Properties:
+            Path: /empresa
+            Method: post
+        GetEmpresa:
+          Type: Api
+          Properties:
+            Path: /empresa/{id}/
+            Method: get
+        PutEmpresa:
+          Type: Api
+          Properties:
+            Path: /empresa/{id}/
+            Method: put
+        DeleteEmpresa:
+          Type: Api
+          Properties:
+            Path: /empresa/{id}/
+            Method: delete
+
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  EmpresaApi:
+    Description: "API Gateway endpoint URL for Prod stage for Empresa function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  EmpresaFunction:
+    Description: "Empresa Lambda Function ARN"
+    Value: !GetAtt EmpresaFunction.Arn
+  EmpresaFunctionIamRole:
+    Description: "Implicit IAM Role created for Empresa function"
+    Value: !GetAtt EmpresaFunction.Arn
