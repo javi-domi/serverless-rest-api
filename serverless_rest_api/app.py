@@ -1,21 +1,16 @@
 import json
 import boto3
-from flask_lambda import FlaskLambda
-from flask import request
+from flask import Flask, request, jsonify
 
-
-app = FlaskLambda(__name__)
+app = Flask(__name__)
 ddb = boto3.resource('dynamodb')
+s3 = boto3.resource('s3')
 table = ddb.Table('empresa')
 
 
-@app.route('/', methods='GET')
+@app.route('/')
 def index():
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "Hello, world!"
-        })}
+    return jsonify({"message": "Hello, world!"})
 
 
 @app.route('/empresa', methods=['GET', 'POST'])
@@ -25,10 +20,14 @@ def put_list_empresa():
         return json_response(empresa)
     else:
         table.put_item(Item=request.form.to_dict())
+        s3.put_object(
+            Body=request.get_json(),
+            Bucket='jsonpost'
+        )
         return json_response({"message": "empresa registrada com sucesso"})
 
 
-@app.route('/empresa/<id>', methods=['GET', 'PATCH', 'DELETE'])
+@app.route('/empresa/<id>', methods=['GET', 'PUT', 'DELETE'])
 def get_patch_delete_empresa(id):
     key = {'id': id}
     if request.method == 'GET':
@@ -37,7 +36,7 @@ def get_patch_delete_empresa(id):
             return json_response(empresa)
         else:
             return json_response({"message": "registro de empresa não encontrado"}, 404)
-    elif request.method == 'PATCH':
+    elif request.method == 'PUT':
         attribute_updates = {key: {'Value': value, 'Action': 'PUT'}
                              for key, value in request.form.items()}
         table.update_item(Key=key, AttributeUpdates=attribute_updates)
